@@ -1,4 +1,5 @@
 import Text.ParserCombinators.ReadP
+import Control.Monad.State.Lazy
 import Data.List (intercalate)
 data Line = End | Atoml Atom | Remarkl Remark deriving (Eq)
 
@@ -8,7 +9,7 @@ instance Show Line where
   show (Remarkl a) = show a
 
 data Amino = ARG | HIS | LYS | ASP | GLU | SER | THR | ASN | GLN | CYS | SEC |
-           GLY | PRO | ALA | VAL | ILE | LEU | MET | PHE | TYR | TRP deriving (Show, Eq)
+           GLY | PRO | ALA | VAL | ILE | LEU | MET | PHE | TYR | TRP deriving (Show, Eq, Read)
 
 data Remark = Remark {
   remarkId :: Int,
@@ -39,14 +40,14 @@ instance Show Atom where
                                                                       show occ, show is, ele]
 
 atString = "ATOM 3 HI GLY HO 20 0.2 0.423 1 2.023 -0.23 H"
-parsePDBLine :: ReadP Line
-parsePDBLine = undefined
 
-parseAtom :: ReadP String
-parseAtom = undefined
+mergeRemarks :: Remark -> Remark -> Remark
+mergeRemarks (Remark i s1) (Remark _ s2) = Remark i (s1++"\n"++s2)
+
+pdblines = [Remarkl $ Remark 1 "hi", Remarkl $ Remark 1 "whoo", Remarkl $ Remark 1 "\nawdlkawjh\n",
+           End, Remarkl $ Remark 3 "hi"]
 
 main :: IO ()
 main = do
-  --print $ readP_to_S parseLine "ATOM POO"
   --print $ Atoml $ Atom 3 "HI" GLY "HI" 30 0.22 0.22 0.22 1.00 0.00 "H"
-  --print $ Remarkl $ Remark 200 "Hello there\nI AM A TEST REMARK\n IS THIS WORKING?"
+  print $ Remarkl $ Remark 200 "Hello there\nI AM A TEST REMARK\n IS THIS WORKING?"
