@@ -1,4 +1,3 @@
-import Text.ParserCombinators.ReadP
 import Control.Monad.State.Lazy
 import Data.List (intercalate)
 data Line = End | Atoml Atom | Remarkl Remark deriving (Eq)
@@ -47,7 +46,20 @@ mergeRemarks (Remark i s1) (Remark _ s2) = Remark i (s1++"\n"++s2)
 pdblines = [Remarkl $ Remark 1 "hi", Remarkl $ Remark 1 "whoo", Remarkl $ Remark 1 "\nawdlkawjh\n",
            End, Remarkl $ Remark 3 "hi"]
 
+--Takes a line of atom definitions. Removes all the ones that have a hydrogen defined at the end
+removeHydrogens :: [String] -> [String]
+removeHydrogens xs = [x | x <- xs, last (words x) /= "H" ]
+
+-- Go through list of strings, numbering with the int from state
+reNumberAtoms :: [String] -> Int -> [String]
+reNumberAtoms [] _= []
+reNumberAtoms (x:xs) i = reNumAtom x i : reNumberAtoms xs (i+1)
+  where
+    reNumAtom :: String -> Int -> String
+    reNumAtom str j = intercalate " " (["ATOM", show j] ++ (drop 2 $ words str))
+
+a=["hi H", "ther 1310298      23509809 8   H    ", "hajwhdkawjhd     C", "wlkjh   H awdlkajwhdlkjh  O"]
+
 main :: IO ()
-main = do
-  --print $ Atoml $ Atom 3 "HI" GLY "HI" 30 0.22 0.22 0.22 1.00 0.00 "H"
-  print $ Remarkl $ Remark 200 "Hello there\nI AM A TEST REMARK\n IS THIS WORKING?"
+main = return (reNumberAtoms (removeHydrogens a) 1) >>= \as ->
+  print as
