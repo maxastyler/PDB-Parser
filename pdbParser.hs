@@ -34,7 +34,7 @@ instance Show Remark where
 -- Record strings are 80 characters in length. This is the format for an atom string
 data Atom = Atom { -- Record Name 1 - 6 eg. "ATOM  "
   serial :: Int, -- 7 - 11
-  name :: String, -- 13 - 16
+  name :: String, -- 14 - 16 (could be 13 - 16 but this doesn't seem to work with smog)
   altLoc :: Char, -- 17
   resName :: Amino, -- 18 - 20
   chainID:: Char, -- 22
@@ -59,7 +59,7 @@ instance Show Atom where
       lJstTake :: Int -> String -> String
       lJstTake i str = justifyLeft i ' ' $ take i str
       serSt = rJstTake 5 $ show serialA
-      namSt = rJstTake 4 $ nameA
+      namSt = lJstTake 3 $ nameA
       altSt = rJstTake 1 $ [altLocA]
       resSt = rJstTake 3 $ show resNameA
       chaSt = rJstTake 1 $ [chainIDA]
@@ -74,7 +74,7 @@ instance Show Atom where
       eleSt = rJstTake 2 $ elementA
       chrSt = rJstTake 2 $ chargeA
     in
-      "ATOM  " ++ serSt ++ " " ++ namSt ++ altSt ++ resSt ++ " " ++ chaSt ++ rSqSt ++ iCoSt ++
+      "ATOM  " ++ serSt ++ "  " ++ namSt ++ altSt ++ resSt ++ " " ++ chaSt ++ rSqSt ++ iCoSt ++
       "   " ++ xSt ++ ySt ++ zSt ++ occSt ++ temSt ++ "      " ++ segSt ++ eleSt ++ chrSt
 
 atomFromString :: String -> Atom
