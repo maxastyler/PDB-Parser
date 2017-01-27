@@ -18,25 +18,53 @@ data Remark = Remark {
 instance Show Remark where
   show (Remark i s) = intercalate "\n" ["REMARK " ++ show i ++ " " ++ st | st <- lines s]
 
-data Atom = Atom {
-  atomId :: Int,
-  elementStr :: String,
-  amino :: Amino,
-  peptide :: String,
-  acidN :: Int,
-  x :: Double,
-  y :: Double,
-  z :: Double,
-  occupancy :: Double,
-  iso :: Double,
-  element :: String
+-- Record strings are 80 characters in length. This is the format for an atom string
+data Atom = Atom { -- Record Name 1 - 6 eg. "ATOM  "
+  serial :: Int, -- 7 - 11
+  name :: String, -- 13 - 16
+  altLoc :: Char, -- 17
+  resName :: Amino, -- 18 - 20
+  chainID:: Char, -- 22
+  resSeq :: Int, -- 23 - 26
+  iCode :: Char, -- 27
+  x :: Double, -- 31 - 38
+  y :: Double, -- 39 - 46
+  z :: Double, -- 47 - 54
+  occupancy :: Double, -- 55 - 60
+  tempFactor :: Double, -- 61 - 66 default of 0.0
+  segment :: String, -- 73 - 76 left justified
+  element :: String, -- 77 - 78 right justified
+  charge :: String -- 79 - 80
                  } deriving (Eq)
 
 instance Show Atom where
-  show (Atom i est am pe acid ax ay az occ is ele) = intercalate " " ["ATOM", show i, est,
-                                                                      show am, pe, show acid,
-                                                                      show ax, show ay, show az,
-                                                                      show occ, show is, ele]
+
+atomFromString :: String -> Maybe Atom
+atomFromString str = case (take 6 str) of
+  "ATOM  " -> let
+    tkDrpStrp :: Int -> Int -> String -> String
+    tkDrpStrp i j st = filter ((/=)' ') $ take i $ drop j st
+    tkDrpStrpPos i j st = tkDrpStrp (j-i+1) (i-1) st
+    serialA = read (tkDrpStrpPos 7 11 str) :: Int
+    nameA = tkDrpStrpPos 13 16 str
+    altLocA = head $ tkDrpStrpPos 17 17 str
+    resNameA = read $ tkDrpStrpPos 18 20 str :: Amino
+    chainIDA = head $ tkDrpStrpPos 22 22 str
+    resSeqA = read $ tkDrpStrpPos 23 26 str :: Int
+    iCodeA = head $ tkDrpStrpPos 27 27 str
+    xA = read $ tkDrpStrpPos 31 38 str :: Double
+    yA = read $ tkDrpStrpPos 39 46 str :: Double
+    zA = read $ tkDrpStrpPos 47 54 str :: Double
+    occupancyA = read $ tkDrpStrpPos 55 60 str :: Double
+    tempFactorA = read $ tkDrpStrpPos 61 66 str :: Double
+    segmentA = tkDrpStrpPos 73 76 str
+    elementA = tkDrpStrpPos 77 78 str
+    chargeA = tkDrpStrpPos 79 80 str
+    in
+      Just $ Atom serialA nameA altLocA resNameA chainIDA resSeqA iCodeA
+                     xA yA zA occupancyA tempFactorA segmentA elementA chargeA
+  _ -> Nothing
+
 
 atString = "ATOM 3 HI GLY HO 20 0.2 0.423 1 2.023 -0.23 H"
 
@@ -53,13 +81,18 @@ removeHydrogens xs = [x | x <- xs, last (words x) /= "H" ]
 -- Go through list of strings, numbering with the int from state
 reNumberAtoms :: [String] -> Int -> [String]
 reNumberAtoms [] _= []
-reNumberAtoms (x:xs) i = reNumAtom x i : reNumberAtoms xs (i+1)
+reNumberAtoms (x:xs) i = if ((head $ words x) == "ATOM") then reNumAtom x i : reNumberAtoms xs (i+1)
+  else
+                           x : reNumberAtoms xs i
   where
     reNumAtom :: String -> Int -> String
     reNumAtom str j = intercalate " " (["ATOM", show j] ++ (drop 2 $ words str))
 
-a=["hi H", "ther 1310298      23509809 8   H    ", "hajwhdkawjhd     C", "wlkjh   H awdlkajwhdlkjh  O"]
+processPDBString :: String -> String
+processPDBString str = intercalate "\n" $ reNumberAtoms (removeHydrogens (lines str)) 1
 
 main :: IO ()
-main = return (reNumberAtoms (removeHydrogens a) 1) >>= \as ->
-  print as
+main = do proteinFile <- readFile "/home/max/mtyler88@gmail.com/University/4 Fourth Year/Senior Honours Project/Materials/protein/2wgo1.pdb"
+          fstLine <- return (head  $ lines proteinFile)
+          putStrLn fstLine
+          print $ liftM element $ atomFromString $ fstLine
