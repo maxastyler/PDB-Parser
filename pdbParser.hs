@@ -1,4 +1,5 @@
 import Control.Monad.State.Lazy
+import System.Environment
 import Data.List (intercalate)
 data Line = End | Atoml Atom | Remarkl Remark deriving (Eq)
 
@@ -107,35 +108,34 @@ atomFromString str =
     Atom serialA nameA altLocA resNameA chainIDA resSeqA iCodeA
     xA yA zA occupancyA tempFactorA segmentA elementA chargeA
 
+--Renumbers an atom
+reNumAtom :: Atom -> Int -> Atom
+reNumAtom (Atom _ b c d e f g h i j k l m n o) a = Atom a b c d e f g h i j k l m n o
 
-atString = "ATOM  32    HI  OGLY H 20 A   0.423   1 2.023 -0.23 H"
-atoom = Atom 3 "AO020" 'p' GLY '2' 30 'a' 10.2030 30.2010 0.2313 0.23 0.0 "hol" "aoa" "hi"
+reNumAtoms :: [Atom] -> Int -> [Atom]
+reNumAtoms [] _ = []
+reNumAtoms (a:as) i = reNumAtom a i : reNumAtoms as (i+1)
 
 mergeRemarks :: Remark -> Remark -> Remark
 mergeRemarks (Remark i s1) (Remark _ s2) = Remark i (s1++"\n"++s2)
 
-pdblines = [Remarkl $ Remark 1 "hi", Remarkl $ Remark 1 "whoo", Remarkl $ Remark 1 "\nawdlkawjh\n",
-           End, Remarkl $ Remark 3 "hi"]
+convertFile :: String -> String
+convertFile file = intercalate "\n" $ convertLines (lines file) 1
+  where convertLines :: [String] -> Int -> [String]
+        convertLines [] _ = []
+        convertLines (l:ls) i = case (head $ words l) of
+          "ATOM" -> show (reNumAtom (atomFromString l) i) : convertLines ls (i+1)
+          _ -> l : convertLines ls (i)
 
---Takes a line of atom definitions. Removes all the ones that have a hydrogen defined at the end
-removeHydrogens :: [String] -> [String]
-removeHydrogens xs = [x | x <- xs, last (words x) /= "H" ]
+extractAtoms :: String -> [Atom]
+extractAtoms file = map atomFromString $ filter (\x -> head (words x)=="ATOM") (lines file)
 
--- Go through list of strings, numbering with the int from state
-reNumberAtoms :: [String] -> Int -> [String]
-reNumberAtoms [] _= []
-reNumberAtoms (x:xs) i = if ((head $ words x) == "ATOM") then reNumAtom x i : reNumberAtoms xs (i+1)
-  else
-                           x : reNumberAtoms xs i
-  where
-    reNumAtom :: String -> Int -> String
-    reNumAtom str j = intercalate " " (["ATOM", show j] ++ (drop 2 $ words str))
-
-processPDBString :: String -> String
-processPDBString str = intercalate "\n" $ reNumberAtoms (removeHydrogens (lines str)) 1
+removeHs :: [Atom] -> [Atom]
+removeHs = filter (\a -> element a /= "H")
 
 main :: IO ()
-main = do proteinFile <- readFile "/home/max/mtyler88@gmail.com/University/4 Fourth Year/Senior Honours Project/Materials/protein/2wgo1.pdb"
-          let fstAtom = take 500  $ lines proteinFile
-          let at = map atomFromString fstAtom
-          mapM_ print at
+main = do filePath <- liftM head getArgs
+          proteinFile <- readFile filePath
+          let ats = reNumAtoms (filter (\at -> element at /= "H" && resSeq at >= 1 ) $ extractAtoms proteinFile) 1
+          mapM_ print ats
+          putStrLn "END"
