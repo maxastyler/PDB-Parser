@@ -115,4 +115,3 @@ extractAtoms file = map atomFromString $ filter (\line -> head (words line)=="AT
 
 removeHs :: [Atom] -> [Atom]
 removeHs = filter (\a -> element a /= "H")
-
