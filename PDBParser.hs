@@ -1,20 +1,9 @@
-import Control.Monad.State.Lazy
-import System.Environment
-import Data.List (intercalate)
-data Line = End | Atoml Atom | Remarkl Remark deriving (Eq)
+module PDBParser where
 
-instance Show Line where
-  show End = "END"
-  show (Atoml a) = show a
-  show (Remarkl a) = show a
+import Data.List (intercalate)
 
 data Amino = ARG | HIS | LYS | ASP | GLU | SER | THR | ASN | GLN | CYS | SEC |
            GLY | PRO | ALA | VAL | ILE | LEU | MET | PHE | TYR | TRP deriving (Show, Eq, Read)
-
-data Remark = Remark {
-  remarkId :: Int,
-  remarkStr :: String
-                     } deriving (Eq)
 
 justifyLeft :: Int -> Char -> String -> String
 justifyLeft i ch st
@@ -27,9 +16,6 @@ justifyRight i ch st
   | lst >= i = st
   | otherwise = replicate (i-lst) ch ++ st
     where lst = length st
-
-instance Show Remark where
-  show (Remark i s) = intercalate "\n" ["REMARK " ++ show i ++ " " ++ st | st <- lines s]
 
 -- Record strings are 80 characters in length. This is the format for an atom string
 data Atom = Atom { -- Record Name 1 - 6 eg. "ATOM  "
@@ -116,9 +102,6 @@ reNumAtoms :: [Atom] -> Int -> [Atom]
 reNumAtoms [] _ = []
 reNumAtoms (a:as) i = reNumAtom a i : reNumAtoms as (i+1)
 
-mergeRemarks :: Remark -> Remark -> Remark
-mergeRemarks (Remark i s1) (Remark _ s2) = Remark i (s1++"\n"++s2)
-
 convertFile :: String -> String
 convertFile file = intercalate "\n" $ convertLines (lines file) 1
   where convertLines :: [String] -> Int -> [String]
@@ -128,14 +111,8 @@ convertFile file = intercalate "\n" $ convertLines (lines file) 1
           _ -> l : convertLines ls (i)
 
 extractAtoms :: String -> [Atom]
-extractAtoms file = map atomFromString $ filter (\x -> head (words x)=="ATOM") (lines file)
+extractAtoms file = map atomFromString $ filter (\line -> head (words line)=="ATOM") (lines file)
 
 removeHs :: [Atom] -> [Atom]
 removeHs = filter (\a -> element a /= "H")
 
-main :: IO ()
-main = do filePath <- liftM head getArgs
-          proteinFile <- readFile filePath
-          let ats = reNumAtoms (filter (\at -> element at /= "H" && resSeq at >= 1 ) $ extractAtoms proteinFile) 1
-          mapM_ print ats
-          putStrLn "END"
