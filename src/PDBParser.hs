@@ -96,7 +96,7 @@ atomFromString str =
 
 --Renumbers an atom
 reNumAtom :: Atom -> Int -> Atom
-reNumAtom (Atom _ b c d e f g h i j k l m n o) a = Atom a b c d e f g h i j k l m n o
+reNumAtom at a = at { serial = a }
 
 reNumAtoms :: [Atom] -> Int -> [Atom]
 reNumAtoms [] _ = []
