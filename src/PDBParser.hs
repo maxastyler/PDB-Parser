@@ -3,7 +3,7 @@ module PDBParser where
 import Data.List (intercalate)
 
 data Amino = ARG | HIS | LYS | ASP | GLU | SER | THR | ASN | GLN | CYS | SEC |
-           GLY | PRO | ALA | VAL | ILE | LEU | MET | PHE | TYR | TRP deriving (Show, Eq, Read)
+           GLY | PRO | ALA | VAL | ILE | LEU | MET | PHE | TYR | TRP deriving (Show, Eq, Read, Ord)
 
 justifyLeft :: Int -> Char -> String -> String
 justifyLeft i ch st
@@ -34,7 +34,7 @@ data Atom = Atom { -- Record Name 1 - 6 eg. "ATOM  "
   segment :: String, -- 73 - 76 left justified
   element :: String, -- 77 - 78 right justified
   charge :: String -- 79 - 80
-                 } deriving (Eq)
+                 } deriving (Eq, Ord)
 
 instance Show Atom where
   show (Atom serialA nameA altLocA resNameA chainIDA resSeqA iCodeA xA yA zA
