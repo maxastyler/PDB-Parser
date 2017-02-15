@@ -17,10 +17,21 @@ justifyRight i ch st
   | otherwise = replicate (i-lst) ch ++ st
     where lst = length st
 
+centreText :: Int -> Char -> String -> String
+centreText i ch st
+  | lst >= i = st
+  | otherwise = let rRep = div amount_left 2
+                    lRep = amount_left - rRep
+                in
+                  replicate (lRep) ch ++ st ++ replicate (rRep) ch
+    where lst = length st
+          amount_left = i - lst
+
 -- Record strings are 80 characters in length. This is the format for an atom string
 data Atom = Atom { -- Record Name 1 - 6 eg. "ATOM  "
   serial :: Int, -- 7 - 11
-  name :: String, -- 14 - 16 (could be 13 - 16 but this doesn't seem to work with smog)
+  --name :: String, 14 - 16 (could be 13 - 16 but this doesn't seem to work with smog)
+  name :: String, --Is 13-16 but is centred (bias to left)
   altLoc :: Char, -- 17
   resName :: Amino, -- 18 - 20
   chainID:: Char, -- 22
@@ -44,8 +55,10 @@ instance Show Atom where
       rJstTake i str = justifyRight i ' ' $ take i str
       lJstTake :: Int -> String -> String
       lJstTake i str = justifyLeft i ' ' $ take i str
+      centreTake :: Int -> String -> String
+      centreTake i str = centreText i ' ' $ take i str
       serSt = rJstTake 5 $ show serialA
-      namSt = lJstTake 3 $ nameA
+      namSt = centreTake 4 $ nameA
       altSt = rJstTake 1 $ [altLocA]
       resSt = rJstTake 3 $ show resNameA
       chaSt = rJstTake 1 $ [chainIDA]
@@ -60,7 +73,7 @@ instance Show Atom where
       eleSt = rJstTake 2 $ elementA
       chrSt = rJstTake 2 $ chargeA
     in
-      "ATOM  " ++ serSt ++ "  " ++ namSt ++ altSt ++ resSt ++ " " ++ chaSt ++ rSqSt ++ iCoSt ++
+      "ATOM  " ++ serSt ++ " " ++ namSt ++ altSt ++ resSt ++ " " ++ chaSt ++ rSqSt ++ iCoSt ++
       "   " ++ xSt ++ ySt ++ zSt ++ occSt ++ temSt ++ "      " ++ segSt ++ eleSt ++ chrSt
 
 atomFromString :: String -> Atom
