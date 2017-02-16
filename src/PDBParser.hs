@@ -21,8 +21,8 @@ justifyRight i ch st
 centreText :: Int -> Char -> String -> String
 centreText i ch st
   | lst >= i = st
-  | otherwise = let rRep = div amount_left 2
-                    lRep = amount_left - rRep
+  | otherwise = let lRep = div amount_left 2
+                    rRep = amount_left - rRep
                 in
                   replicate (lRep) ch ++ st ++ replicate (rRep) ch
     where lst = length st
