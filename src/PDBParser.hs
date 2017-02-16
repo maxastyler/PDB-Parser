@@ -119,7 +119,7 @@ reNumAtoms (a:as) i = reNumAtom a i : reNumAtoms as (i+1)
 reNumResidues :: [Atom] -> Int -> [Atom]
 reNumResidues ats i= let reNumGroup grp k = map (\at -> at{resSeq=k}) grp
                          reNumGroups [] _ = []
-                         reNumGroups (g:gs) j = reNumGroup g j : reNumGroups gs (i+1)
+                         reNumGroups (g:gs) j = reNumGroup g j : reNumGroups gs (j+1)
                in concat $ reNumGroups (groupWith (\at -> resSeq at) ats ) i
 
 
