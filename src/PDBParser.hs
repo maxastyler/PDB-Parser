@@ -22,7 +22,7 @@ centreText :: Int -> Char -> String -> String
 centreText i ch st
   | lst >= i = st
   | otherwise = let lRep = div amount_left 2
-                    rRep = amount_left - rRep
+                    rRep = amount_left - lRep
                 in
                   replicate (lRep) ch ++ st ++ replicate (rRep) ch
     where lst = length st
