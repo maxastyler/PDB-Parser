@@ -28,6 +28,17 @@ centreText i ch st
     where lst = length st
           amount_left = i - lst
 
+--Because name formatting is weird.
+--0 letters
+formatName :: String -> String
+formatName st = case (length st) of
+  0 -> "    "
+  1 -> " " ++ st ++ "  "
+  2 -> " " ++ st ++ " "
+  3 -> " " ++ st
+  4 -> st
+  _ -> take 4 st
+
 -- Record strings are 80 characters in length. This is the format for an atom string
 data Atom = Atom { -- Record Name 1 - 6 eg. "ATOM  "
   serial :: Int, -- 7 - 11
@@ -56,10 +67,8 @@ instance Show Atom where
       rJstTake i str = justifyRight i ' ' $ take i str
       lJstTake :: Int -> String -> String
       lJstTake i str = justifyLeft i ' ' $ take i str
-      centreTake :: Int -> String -> String
-      centreTake i str = centreText i ' ' $ take i str
       serSt = rJstTake 5 $ show serialA
-      namSt = centreTake 4 $ nameA
+      namSt = formatName nameA
       altSt = rJstTake 1 $ [altLocA]
       resSt = rJstTake 3 $ show resNameA
       chaSt = rJstTake 1 $ [chainIDA]
