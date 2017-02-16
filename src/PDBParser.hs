@@ -3,7 +3,7 @@ module PDBParser where
 import Data.List (intercalate)
 
 data Amino = ARG | HIS | LYS | ASP | GLU | SER | THR | ASN | GLN | CYS | SEC |
-           GLY | PRO | ALA | VAL | ILE | LEU | MET | PHE | TYR | TRP deriving (Show, Eq, Read, Ord)
+           GLY | PRO | ALA | VAL | ILE | LEU | MET | PHE | TYR | TRP | HSD deriving (Show, Eq, Read, Ord)
 
 justifyLeft :: Int -> Char -> String -> String
 justifyLeft i ch st
